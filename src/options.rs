@@ -70,6 +70,10 @@ pub struct Cli {
     /// Additional argument to pass to optimization executable (after output folder)
     #[structopt(long)]
     pub optimizer_arg: Option<String>,
+
+    /// Frame rate of the output video, default: 24.
+    #[structopt(long)]
+    pub fps: Option<f64>,
 }
 
 lazy_static! {

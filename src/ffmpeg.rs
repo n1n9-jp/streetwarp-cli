@@ -41,12 +41,13 @@ pub async fn create_timelapse<P: AsRef<Path>>(image_dir: P, num_images: usize, o
     } else {
         "%d.jpg"
     };
+    let fps_str = CLI_OPTIONS.fps.unwrap_or(24.0).to_string();
     ffmpeg(
         image_dir,
         &(move |frame| 100.0 * (frame as f64) / (num_images as f64)),
         &[
             "-framerate",
-            "24",
+            &fps_str,
             "-pattern_type",
             "sequence",
             "-i",
@@ -79,6 +80,12 @@ pub async fn blend_timelapse<P: AsRef<Path>>(
     out_filename: &str,
 ) {
     // ffmpeg -i streetwarp.mp4-original.mp4 -filter_complex "[0:v]minterpolate=fps=48.0,tblend=all_mode=average,framestep=2[out]" -map "[out]" -c:v libx264 -crf 17 -pix_fmt yuv420p -y -preset ultrafast -progress streetwarp-lapse24_blur.mp4
+    let fps = CLI_OPTIONS.fps.unwrap_or(24.0);
+    let interp_fps = (fps * 2.0).to_string();
+    let filter = format!(
+        "[0:v]minterpolate=fps={},tblend=all_mode=average,framestep=2[out]",
+        interp_fps
+    );
     ffmpeg(
         image_dir,
         &(move |frame| 100.0 * (frame as f64) / (num_images as f64)),
@@ -86,7 +93,7 @@ pub async fn blend_timelapse<P: AsRef<Path>>(
             "-i",
             original_filename,
             "-filter_complex",
-            "[0:v]minterpolate=fps=48,tblend=all_mode=average,framestep=2[out]",
+            &filter,
             "-map",
             "[out]",
             "-c:v",
@@ -115,6 +122,12 @@ pub async fn minterp_timelapse<P: AsRef<Path>>(
     out_filename: &str,
 ) {
     // ffmpeg -i streetwarp-lapse24.mp4 -filter:v "minterpolate='mi_mode=mci:mc_mode=aobmc:vsbmc=1:fps=50'" -c:v libx264 -crf 17 -pix_fmt yuv420p -y -preset ultrafast streetwarp-lapse24_flow.mp4
+    let fps = CLI_OPTIONS.fps.unwrap_or(24.0);
+    let interp_fps = (fps * 3.0).to_string();
+    let filter = format!(
+        "minterpolate='mi_mode=mci:mc_mode=aobmc:vsbmc=1:fps={}'",
+        interp_fps
+    );
     ffmpeg(
         image_dir,
         &(move |frame| 33.3 * (frame as f64) / (num_images as f64)),
@@ -122,7 +135,7 @@ pub async fn minterp_timelapse<P: AsRef<Path>>(
             "-i",
             original_filename,
             "-filter:v",
-            "minterpolate='mi_mode=mci:mc_mode=aobmc:vsbmc=1:fps=72'",
+            &filter,
             "-c:v",
             "libx264",
             "-crf",

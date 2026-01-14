@@ -41,6 +41,11 @@ cargo run -- --api-key "AIzaSyAhsXw89rSXI6w43Tiaz-zgH60_2-h8ufA" --max-frames 50
 - `--minterp fast`: 処理速度優先で補間を行います。
 - `--minterp skip`: 補間をスキップします。カクカクした質感にしたい場合に有効です。
 
+フレームレート設定（--fps）
+動画の基本フレームレートを指定できます（デフォルト: 24）。
+- 補間あり（good/fast）の場合、最終的な動画はこの値の3倍（または2倍）のFPSになります。
+- 例：`--fps 30` と指定すると、補間後の動画は 90 fps になります。
+
 ```bash
 cargo run -- --api-key "AIzaSyAhsXw89rSXI6w43Tiaz-zgH60_2-h8ufA" --output-dir ./out res/arc-timeline-daily.0007-10-25.gpx
 ```
