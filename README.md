@@ -1,26 +1,47 @@
-# Hyperlapse streetview images along GPX tracks
+使い方（ヘルプの表示）
+cargo run -- --help
 
-![](res/example.gif)
+ビルドされたバイナリを直接実行する場合はこちらです。
+./target/debug/streetwarp --help
 
-### Prerequisites
-1. **Install [ffmpeg](https://ffmpeg.org/download.html)** (or build it with h264 encoding)
-2. Get a **Google Maps API key** [from here](https://developers.google.com/maps/documentation/streetview/)
-3. Activate the Streetview static API from [this page](https://console.cloud.google.com/apis/library/street-view-image-backend.googleapis.com)
-4. Record your API key from [this page](https://console.cloud.google.com/apis/credentials) of the console
+具体的な例
+リポジトリ内の res フォルダにあるサンプルファイル（例: 
+Lunch_Miler.gpx
+）を使用する場合は、以下のようになります：
 
-### API Usage notes
-Some back of the napkin estimations:
-  - Google gives you $200 of free credit every month
-  - The [Streetview static API](https://developers.google.com/maps/documentation/streetview/) costs $0.007 per frame
-  - In the densest areas we can download about 200 images per mile
-  - This lets you render about **150** miles per month for free
-   
-To **avoid hitting your API quota**, pass in the `--dry-run` option!
+cargo run -- [オプション] <GPXファイルへのパス>
+cargo run -- res/Lunch_Miler.gpx
 
-### Usage
-`cargo run -- --help`
+重要な注意点：APIキー
+このソフトを実際に動作させて画像をダウンロードするには、Google Streetview Static APIのキーが必要です。APIキーを指定して実行する場合は以下のようになります：
 
-Included in this repo are some gpx files you can use to play around with.
+具体例（動画生成）
+実際に画像をダウンロードして動画を生成するには、`--dry-run`を外して実行します。
+大量の画像がダウンロードされるため、`--output-dir`を指定して作業ディレクトリを固定することをお勧めします。
 
-### Demo
-I provide this program's functionality as a free service at [streetwarp.com](https://streetwarp.com).
+```bash
+# 出力用フォルダを作成
+mkdir -p out
+
+# 実行（例：最初の50フレームのみ）
+cargo run -- --api-key "AIzaSyAhsXw89rSXI6w43Tiaz-zgH60_2-h8ufA" --max-frames 50 --output-dir ./out res/arc-timeline-daily.0007-10-25.gpx
+```
+
+出力先について
+`--output-dir`を指定しない場合、動画と一時画像はOSのテンポラリフォルダ（例: `/var/folders/...`）に生成されます。カレントディレクトリには書き出されないため、必ず出力先を指定して実行することを推奨します。
+
+生成されるファイル：
+- `streetwarp-lapse.mp4`: **完成版動画**。AIによるフレーム補間が行われており、動きが非常に滑らかです（72fps）。
+- `streetwarp-lapse-original.mp4`: 中間ファイル。補間なしの状態の動画です。
+- `0.jpg, 1.jpg...`: 各フレームの画像
+
+補間オプション（--minterp）
+動きの補間方法を以下のオプションで変更できます。
+- `--minterp good`: デフォルト。高品質な補間を行います。
+- `--minterp fast`: 処理速度優先で補間を行います。
+- `--minterp skip`: 補間をスキップします。カクカクした質感にしたい場合に有効です。
+
+```bash
+cargo run -- --api-key "AIzaSyAhsXw89rSXI6w43Tiaz-zgH60_2-h8ufA" --output-dir ./out res/arc-timeline-daily.0007-10-25.gpx
+```
+
